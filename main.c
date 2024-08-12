@@ -44,7 +44,20 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
+const uint8_t led_patterns[9] = {
+    0b11101001, // Pattern 1
+    0b11010010, // Pattern 2
+    0b10100100, // Pattern 3
+    0b01001000, // Pattern 4
+    0b10010000, // Pattern 5
+    0b00100000, // Pattern 6
+    0b01000000, // Pattern 7
+    0b10000000, // Pattern 8
+    0b00000000  // Pattern 9
+};
 
+// Current pattern index
+uint8_t current_pattern = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -320,13 +333,24 @@ static void MX_GPIO_Init(void)
 // Timer rolled over
 void TIM16_IRQHandler(void)
 {
-	// Acknowledge interrupt
-	HAL_TIM_IRQHandler(&htim16);
+    // Acknowledge interrupt
+    HAL_TIM_IRQHandler(&htim16);
 
-	// TODO: Change LED pattern
-	// print something
+    // Change LED pattern
+    uint8_t pattern = led_patterns[current_pattern];
+    
+    // Update LEDs
+    HAL_GPIO_WritePin(LED0_GPIO_Port, LED0_Pin, (pattern & 0b10000000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, (pattern & 0b01000000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, (pattern & 0b00100000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED3_GPIO_Port, LED3_Pin, (pattern & 0b00010000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED4_GPIO_Port, LED4_Pin, (pattern & 0b00001000) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED5_GPIO_Port, LED5_Pin, (pattern & 0b00000100) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED6_GPIO_Port, LED6_Pin, (pattern & 0b00000010) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(LED7_GPIO_Port, LED7_Pin, (pattern & 0b00000001) ? GPIO_PIN_SET : GPIO_PIN_RESET);
 
-  
+    // Move to next pattern
+    current_pattern = (current_pattern + 1) % 9;
 }
 
 /* USER CODE END 4 */
