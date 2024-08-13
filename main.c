@@ -44,6 +44,20 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
+const uint8_t ledPatterns[9] = {
+    0b11101001,
+    0b11010010,
+    0b10100100,
+    0b01001000,
+    0b10010000,
+    0b00100000,
+    0b01000000,
+    0b10000000,
+    0b00000000
+};
+
+// Current pattern index
+uint8_t currentPatternIndex = 0;
 
 /* USER CODE END PV */
 
@@ -325,7 +339,11 @@ void TIM16_IRQHandler(void)
 
 	// TODO: Change LED pattern
 	// print something
+ // Update LEDs using direct register manipulation
+    GPIOA->ODR = (GPIOA->ODR & 0xFFFFFF00) | ledPatterns[currentPatternIndex];
 
+    // Move to next pattern
+    currentPatternIndex = (currentPatternIndex + 1) % 9;
   
 }
 
