@@ -6,13 +6,13 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2023 STMicroelectronics.f
+  * Copyright (c) 2023 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
   * in the root directory of this software component.
   * If no LICENSE file comes with this software, it is provided AS-IS.
-  *fff
+  *
   ******************************************************************************
   */
 /* USER CODE END Header */
@@ -44,20 +44,21 @@ TIM_HandleTypeDef htim16;
 
 /* USER CODE BEGIN PV */
 // TODO: Define input variables
-const uint8_t ledPatterns[9] = {
-    0b11101001,
-    0b11010010,
-    0b10100100,
-    0b01001000,
-    0b10010000,
-    0b00100000,
-    0b01000000,
-    0b10000000,
-    0b00000000
+const uint8_t LED_PATTERNS[9][8] = {
+    {1, 1, 1, 0, 1, 0, 0, 1},
+    {1, 1, 0, 1, 0, 0, 1, 0},
+    {1, 0, 1, 0, 0, 1, 0, 0},
+    {0, 1, 0, 0, 1, 0, 0, 0},
+    {1, 0, 0, 1, 0, 0, 0, 0},
+    {0, 0, 1, 0, 0, 0, 0, 0},
+    {0, 1, 0, 0, 0, 0, 0, 0},
+    {1, 0, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 0, 0} //Patterns
 };
 
-// Current pattern index
-uint8_t currentPatternIndex = 0;
+// TODO: Define global variables
+uint8_t currentPattern = 0;
+uint32_t timerDelay = 1000; // 1 second in milliseconds
 
 /* USER CODE END PV */
 
@@ -104,7 +105,7 @@ int main(void)
   /* USER CODE BEGIN 2 */
 
   // TODO: Start timer TIM16
-  HAL_TIM_Base_Start_IT(&htim16);
+  HAL_TIM_Base_Start_IT(&htim16);//Starter time
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -116,8 +117,28 @@ int main(void)
     /* USER CODE BEGIN 3 */
 
     // TODO: Check pushbuttons to change timer delay
-    HAL_GPIO_TogglePin(GPIOB, GPIO_PIN_0);
-    
+	  if (LL_GPIO_IsInputPinSet(Button0_GPIO_Port, Button0_Pin) == 0)
+	  {
+	      timerDelay = 500; // 0.5 second delay
+	      __HAL_TIM_SET_AUTORELOAD(&htim16, (timerDelay - 1));
+	  }
+	  else if (LL_GPIO_IsInputPinSet(Button1_GPIO_Port, Button1_Pin) == 0)
+	  {
+	      timerDelay = 2000; // 2 second delay
+	      __HAL_TIM_SET_AUTORELOAD(&htim16, (timerDelay - 1));
+	  }
+	  else if (LL_GPIO_IsInputPinSet(Button2_GPIO_Port, Button2_Pin) == 0)
+	  {
+	      timerDelay = 1000; // 1 second delay
+	      __HAL_TIM_SET_AUTORELOAD(&htim16, (timerDelay - 1));
+	  }
+	  else if (LL_GPIO_IsInputPinSet(Button3_GPIO_Port, Button3_Pin) == 0)
+	  {
+	      currentPattern = 0; // Reset to first pattern
+	  }
+
+	  HAL_Delay(50); // Simple debounce delay
+
 
   }
   /* USER CODE END 3 */
@@ -339,12 +360,21 @@ void TIM16_IRQHandler(void)
 
 	// TODO: Change LED pattern
 	// print something
- // Update LEDs using direct register manipulation
-    GPIOA->ODR = (GPIOA->ODR & 0xFFFFFF00) | ledPatterns[currentPatternIndex];
+	for (int i = 0; i < 8; i++)
+	    {
+	        if (LED_PATTERNS[currentPattern][i])
+	        {
+	            LL_GPIO_SetOutputPin(GPIOB, LED0_Pin << i);
+	        }
+	        else
+	        {
+	            LL_GPIO_ResetOutputPin(GPIOB, LED0_Pin << i);
+	        }
+	    } //Updates LEDs based on current pattern
 
-    // Move to next pattern
-    currentPatternIndex = (currentPatternIndex + 1) % 9;
-  
+	    // Move to next pattern
+	    currentPattern = (currentPattern + 1) % 9;
+
 }
 
 /* USER CODE END 4 */
